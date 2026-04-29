@@ -500,11 +500,12 @@ public class GamePanel extends JPanel implements Runnable {
         }
 
         for(int i = 0; i < Server.MAX_PLAYERS; i++){
-            if(i == myId) continue;
-            if(!otherPlayers.containsKey(i)){
-                if(finishPlaces.containsKey(i)){
-                    ranking.add(new int[]{i, Total_Laps});
-                }
+            if(i == myId) {
+                ranking.add(new int[]{i, laps});
+            } else if (otherPlayers.containsKey(i)){
+                ranking.add(new int[]{i, (int) otherPlayers.get(i)[2]});
+            } else {
+                ranking.add(new int[]{i, 0});
             }
         }
         ranking.sort((a, b) -> b[1] - a[1]);
