@@ -588,7 +588,7 @@ public class GamePanel extends JPanel implements Runnable {
     private String formatTime(long ms){
         long minutes =  ms / 60000;
         long seconds =  (ms % 60000) / 1000;
-        return String.format("%d:%02d", minutes, seconds);
+        return String.format("%d:%d", minutes, seconds);
     }
 
     @Override
