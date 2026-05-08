@@ -70,6 +70,7 @@ public class GamePanel extends JPanel implements Runnable {
     private final Map<Integer, double[]> otherPlayers = new ConcurrentHashMap<>();
     private final Map<Integer, Integer> finishPlaces = new ConcurrentHashMap<>();
     private final Map<Integer, Long> finishTimes = new ConcurrentHashMap<>();
+    private final Map<Integer, String> finishTimeStrings = new ConcurrentHashMap<>();
 
     private PrintWriter netOut;
     private static final Color[] PLAYER_COLORS = {Color.BLUE, Color.RED, Color.GREEN};
@@ -113,12 +114,17 @@ public class GamePanel extends JPanel implements Runnable {
                         case "FINISHED":
                             int pid = Integer.parseInt(parts[1]);
                             int place = Integer.parseInt(parts[2]);
-                            long time = Long.parseLong(parts[3]);
+                            long elapsedMs = Long.parseLong(parts[3]);
+                            long secondsTotal = elapsedMs / 1000;
+                            long minutes = secondsTotal / 60;
+                            long seconds = secondsTotal % 60;
+                            String formattedTime = String.format("%2d:%2d", minutes, seconds);
+                            finishTimeStrings.put(pid, formattedTime);
                             finishPlaces.put(pid, place);
-                            finishTimes.put(pid, time);
+                            finishTimes.put(pid, elapsedMs);
                             if(pid == myId){
                                 finishPlace = place;
-                                raceFinishTime = raceStartTime + time;
+                                raceFinishTime = raceStartTime + elapsedMs;
                                 raceFinished = true;
                                 speed = 0;
                             }
@@ -285,6 +291,12 @@ public class GamePanel extends JPanel implements Runnable {
                     raceFinished = true;
                     finishPlace = 1;
                     speed = 0;
+                    long elapsed = raceFinishTime - raceStartTime;
+                    long secondsTotal = elapsed / 1000;
+                    long minutes = secondsTotal / 60;
+                    long seconds = secondsTotal % 60;
+                    String timeStr = String.format("%2d:%2d", minutes, seconds);
+                    finishTimeStrings.put(myId, timeStr);
                 }
             }
         }
@@ -472,7 +484,7 @@ public class GamePanel extends JPanel implements Runnable {
         g.drawString("Speed: " + speedPct + "%", 20, 60);
         if(raceStartTime > 0 && !raceFinished){
             long elapsed = System.currentTimeMillis() - raceStartTime;
-            g.drawString("Time: " + formatTime(elapsed) + "ms", 20, 82);
+            g.drawString("Time: " + formatTime(elapsed), 20, 82);
         }
 
         if(waitingForPlayers){
@@ -494,10 +506,6 @@ public class GamePanel extends JPanel implements Runnable {
 
         //sortare jucatori dupa laps
         List<int[]> ranking = new ArrayList<>();
-        ranking.add(new int[]{myId, laps});
-        for(Map.Entry<Integer, double[]> e : otherPlayers.entrySet()){
-            ranking.add(new int[]{e.getKey(), (int)e.getValue()[2]});
-        }
 
         for(int i = 0; i < Server.MAX_PLAYERS; i++){
             if(i == myId) {
@@ -566,7 +574,7 @@ public class GamePanel extends JPanel implements Runnable {
         //timpul obtinut
         g.setFont(new Font("Arial", Font.BOLD, 24));
         g.setColor(Color.WHITE);
-        String timeStr = "Timp: " + formatTime(elapsed);
+        String timeStr = "Timp: " + finishTimeStrings.get(myId);
         int timeW = g.getFontMetrics().stringWidth(timeStr);
         g.drawString(timeStr, (W - timeW) / 2, py + 170);
 
@@ -586,8 +594,9 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     private String formatTime(long ms){
-        long minutes =  ms / 60000;
-        long seconds =  (ms % 60000) / 1000;
+        long secondsTotal = ms / 1000;
+        long minutes = secondsTotal / 60;
+        long seconds = secondsTotal % 60;
         return String.format("%d:%d", minutes, seconds);
     }
 
