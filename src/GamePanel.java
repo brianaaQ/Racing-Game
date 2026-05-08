@@ -532,7 +532,7 @@ public class GamePanel extends JPanel implements Runnable {
         g.setColor(new Color(0,0,0,180));
         g.fillRect(0,0,W, H);
 
-        int pw = 460, ph = 280;
+        int pw = 500, ph = 320;
         int px = (W - pw) / 2,  py = (H - ph) / 2;
         g.setColor(new Color(20, 20, 40, 230));
         g.fillRoundRect(px, py, pw, ph, 30, 30);
